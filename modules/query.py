@@ -7,16 +7,22 @@ from .db import db
 import os
 from pydantic import BaseModel
 
-def query(keyword:str =None, temperature: float = .5, dlu_key: str = Security(checkDluKey), current_user: User = Depends(get_current_user)):
+
+def query(
+    keyword: str = None,
+    temperature: float = 0.5,
+    dlu_key: str = Security(checkDluKey),
+    current_user: User = Depends(get_current_user),
+):
     keyword = keyword.replace("%20", " ")
 
     gem_keys = db.keyMap.find_one({"dlu_key": dlu_key}).get("gem_keys")[0]
-    
-    genai.configure(api_key = gem_keys)
 
-    model = genai.GenerativeModel('gemini-pro')
+    genai.configure(api_key=gem_keys)
 
-    prompt =  f"""tell me about {keyword} in no more than 50 words""",    
+    model = genai.GenerativeModel("gemini-pro")
+
+    prompt = (f"""tell me about {keyword} in no more than 50 words""",)
     generation_config = {
         "max_output_tokens": 1024,
         "temperature": 0.5,
@@ -29,4 +35,4 @@ def query(keyword:str =None, temperature: float = .5, dlu_key: str = Security(ch
         )
         return {"prompt": prompt, "response": response.text}
     except Exception as e:
-        return {"prompt": prompt, "error": str(e)}   
+        return {"prompt": prompt, "error": str(e)}
